@@ -1,10 +1,9 @@
 import { Injectable } from '@nestjs/common';
-import type { Clothes, Price, Product } from './product.model';
+import type { Price, Product } from './product.model';
 import { v4 as uuid } from 'uuid'
 import { CreateProductDto } from './dto/create-product.dto';
-import { GetClothesFilterDto } from './dto/get-clothes-filter.dto';
-import { CreateClothesDto } from './dto/create-clothes.dto';
 import { GetProductFilterDto } from './dto/get-product-filter.dto';
+import { NotFoundException } from '@nestjs/common/exceptions/not-found.exception';
 
 @Injectable()
 export class ProductsService {
@@ -14,31 +13,27 @@ export class ProductsService {
     return this.products;
   }
 
-  getProductsWithFilters(filterDto: GetProductFilterDto | GetClothesFilterDto): Product[] {
+  getProductsWithFilters(filterDto: GetProductFilterDto): Product[] {
     let products = this.getAllProducts();
-
-    if (filterDto instanceof GetClothesFilterDto) {
-      const { size, search } = filterDto;
-
-      if (size)
-        products = products.filter((clothes: Clothes) => clothes.size === size);
-      if (search)
-        products = products.filter((clothes: Clothes) => clothes.title.includes(search) || clothes.description.includes(search));
-    } else if (filterDto instanceof GetProductFilterDto) {
-      const { search } = filterDto;
-
-      if (search)
-        products = products.filter((product: Product) => product.title.includes(search) || product.description.includes(search));
-    }
-
+    const { search } = filterDto;
+    if (search)
+      products = products.filter((product: Product) =>
+        product.title.toLowerCase().includes(search.toLowerCase())
+        || product.description.toLowerCase().includes(search.toLowerCase()));
     return products
   }
 
   getProductById(id: string): Product {
-    return this.products.find((product) => product.id = id);
+    const found = this.products.find((product) => product.id = id);
+
+    if (!found) {
+      throw new NotFoundException();
+    }
+
+    return found
   }
 
-  createProduct(createProductDto: CreateProductDto | CreateClothesDto): Product | Clothes {
+  createProduct(createProductDto: CreateProductDto): Product {
     const product = {
       id: uuid(),
       ...createProductDto
@@ -48,7 +43,8 @@ export class ProductsService {
   }
 
   deleteProduct(id: string): void {
-    this.products = this.products.filter((product) => product.id != id);
+    const found = this.getProductById(id);
+    this.products = this.products.filter((product) => product.id != found.id);
   }
 
   updateProductPrice(id: string, price: Price): Product {

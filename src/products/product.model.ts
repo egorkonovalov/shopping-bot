@@ -7,7 +7,3 @@ export interface Product {
   description: string;
   price: Price;
 }
-
-export interface Clothes extends Product {
-  size: Size
-}

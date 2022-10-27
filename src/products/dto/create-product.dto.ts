@@ -1,7 +1,7 @@
-import type { Product, Price } from '../product.model'
+import type { Product as IProduct, Price, Attribute } from '../product.model'
 import { IsNotEmpty } from 'class-validator'
 
-export class CreateProductDto implements Product {
+export class CreateProductDto implements IProduct {
   id: string;
 
   @IsNotEmpty()
@@ -12,5 +12,5 @@ export class CreateProductDto implements Product {
 
   typeId: string;
   price: Price;
-  attributes: [];
+  attributes: Array<Attribute>;
 }

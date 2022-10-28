@@ -1,8 +1,13 @@
 export type Price = { amount: number, currency: string };
 
 export type Attribute = {
-  key: string,
+  name: string,
   value: string
+}
+
+export type ProductType = {
+  id: number,
+  name: string
 }
 
 export interface Product {

@@ -14,7 +14,7 @@ export class Product {
   @Column()
   description: string;
 
-  @Column({ type: 'varchar', nullable: false })
+  @Column({ type: 'jsonb', nullable: false })
   price: Price;
 
   @ManyToOne(() => ProductType)

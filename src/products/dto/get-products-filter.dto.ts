@@ -1,7 +1,7 @@
 import { IsString, IsOptional } from 'class-validator'
 
 
-export class GetProductFilterDto {
+export class GetProductsFilterDto {
 
     @IsOptional()
     @IsString()

@@ -1,58 +1,48 @@
-import { Injectable } from '@nestjs/common';
 import type { Price } from '../product.model';
-import { v4 as uuid } from 'uuid'
+import { Injectable } from '@nestjs/common';
 import { CreateProductDto } from '../dto/create-product.dto';
-import { GetProductFilterDto } from '../dto/get-product-filter.dto';
+import { GetProductsFilterDto } from '../dto/get-products-filter.dto';
 import { NotFoundException } from '@nestjs/common/exceptions/not-found.exception';
-import { InjectRepository } from '@nestjs/typeorm';
 import { Product, ProductWithAttributes } from '../entities/product.entity';
-import { Repository } from 'typeorm';
 import { AttributesService } from './attributes.service';
+import { ProductsRepository } from "../products.repository"
+
 
 @Injectable()
 export class ProductsService {
 
   constructor(
-    @InjectRepository(Product)
-    private readonly productsRepository: Repository<Product>,
+    private readonly productsRepository: ProductsRepository,
     private readonly attributeService: AttributesService
   ) { }
 
-  async getAllProducts(): Promise<Product[]> {
-    return await this.productsRepository.find();
+  async getProductWithAttributes(product: Product): Promise<ProductWithAttributes> {
+    return {
+      ...product,
+      attributes: await this.attributeService.getAttributesByProduct(product)
+    }
   }
 
-  async getProductsWithFilters(filterDto: GetProductFilterDto): Promise<Product[]> {
-    let products = await this.getAllProducts();
-    const { search } = filterDto;
-    if (search)
-      products = products.filter((product: Product) =>
-        product.title.toLowerCase().includes(search.toLowerCase())
-        || product.description.toLowerCase().includes(search.toLowerCase()));
-    return products
+  async getProducts(filterDto: GetProductsFilterDto): Promise<ProductWithAttributes[]> {
+    const result = await this.productsRepository.getProducts(filterDto);
+    return await Promise.all(
+      result.map(product => this.getProductWithAttributes(product))
+    )
   }
 
   async getProductById(id: string): Promise<ProductWithAttributes> {
     try {
       const product = await this.productsRepository.findOneByOrFail({ id: id });
-      const attributes = await this.attributeService.getAttributesByProduct(product);
-      return {
-        ...product,
-        attributes: attributes.map((attribute) => { return { name: attribute.name, value: attribute.value } })
-      }
+      return this.getProductWithAttributes(product);
     } catch (e) {
       throw new NotFoundException(e.message)
     }
   }
 
-  async createProduct(createProductDto: CreateProductDto): Promise<Product> {
-    const product = this.productsRepository.create({
-      id: uuid(),
-      ...createProductDto
-    });
-    await this.productsRepository.save(product);
-    await this.attributeService.createAttribute(createProductDto['attributes'], product);
-    return product
+  async createProduct(createProductDto: CreateProductDto): Promise<ProductWithAttributes> {
+    const product = await this.productsRepository.createProduct(createProductDto)
+    const attributes = await this.attributeService.createAttribute(createProductDto['attributes'], product);
+    return { ...product, attributes: attributes }
   }
 
   async deleteProduct(id: string): Promise<void> {

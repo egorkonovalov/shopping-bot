@@ -5,4 +5,4 @@ read username
 echo Enter password:
 read -s password
 db_url=( $DB_URL )
-./user_register $username $password $db_url
+../user_register $username $password $db_url

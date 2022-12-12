@@ -14,6 +14,7 @@ export interface Product {
   id: string;
   title: string;
   description: string;
+  typeId: ProductType["id"];
   price: Price;
   attributes: Array<Attribute>
 }

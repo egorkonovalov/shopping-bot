@@ -7,7 +7,6 @@ import { Product, ProductWithAttributes } from '../entities/product.entity';
 import { AttributesService } from './attributes.service';
 import { ProductsRepository } from "../products.repository"
 
-
 @Injectable()
 export class ProductsService {
 

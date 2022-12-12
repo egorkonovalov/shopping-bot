@@ -10,7 +10,7 @@ export class CreateProductDto implements IProduct {
   @IsNotEmpty()
   description: string;
 
-  typeId: string;
+  typeId: number;
   price: Price;
   attributes: Array<Attribute>;
 }
